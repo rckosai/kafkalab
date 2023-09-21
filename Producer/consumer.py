@@ -1,13 +1,13 @@
 from confluent_kafka import Consumer, KafkaError
 
-# Configurações do Kafka
+# Config do Kafka
 config = {
-    'bootstrap.servers': 'localhost:9092',  # Substitua pelo endereço do broker Kafka
+    'bootstrap.servers': 'localhost:9092', 
     'group.id': 'my-group',
     'auto.offset.reset': 'earliest'
 }
 
-# Crie um consumidor Kafka
+# consumidor Kafka
 consumer = Consumer(config)
 
 # Tópico para consumir mensagens

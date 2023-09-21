@@ -2,7 +2,7 @@ from confluent_kafka import Producer
 
 # Configurações do Kafka
 config = {
-    'bootstrap.servers': 'localhost:9092',  # Substitua pelo endereço do broker Kafka
+    'bootstrap.servers': 'localhost:9092', 
     'client.id': 'python-producer'
 }
 
@@ -13,7 +13,7 @@ def delivery_report(err, msg):
     else:
         print('Mensagem entregue com sucesso para o tópico {} [{}]'.format(msg.topic(), msg.partition()))
 
-# Crie um produtor Kafka
+# produtor Kafka
 producer = Producer(config)
 
 # Tópico para enviar mensagens
@@ -28,5 +28,5 @@ with open(log_file, 'r') as file:
         # Envie cada linha do log como mensagem
         producer.produce(topic, value=line.strip(), callback=delivery_report)
 
-# Aguarde até que todas as mensagens sejam entregues
+# Aguarda entrega das mensagens
 producer.flush()
