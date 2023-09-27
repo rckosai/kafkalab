@@ -141,7 +141,9 @@ resource "aws_iam_policy" "ssm_policy" {
           "ssm:UpdateAssociationStatus",
           "ssm:UpdateInstanceAssociationStatus",
           "ssm:UpdateInstanceInformation",
-          "ssm:StartSession"
+          "ssm:StartSession",
+          "s3:*",
+          "s3-object-lambda:*"
         ],
         Effect   = "Allow",
         Resource = "*",
@@ -154,6 +156,7 @@ resource "aws_iam_policy" "ssm_policy" {
 resource "aws_iam_role_policy_attachment" "ssm_attachment" {
   policy_arn = aws_iam_policy.ssm_policy.arn
   role       = aws_iam_role.ssm_role.name
+
 }
 
 # função IAM para as instâncias EC2
@@ -203,6 +206,9 @@ resource "aws_instance" "kafka_broker" {
               sudo systemctl enable amazon-ssm-agent
               mkdir -p /data/kafka_broker
               chown -R ec2-user: /data/kafka_broker
+              sudo aws s3 cp s3://rckosai-kafka-lab/producer.py /tmp
+              sudo aws s3 cp s3://rckosai-kafka-lab/consumer.py /tmp
+              sudo chmod +x /tmp/producer.py /tmp/consumer.py
               wget https://archive.apache.org/dist/kafka/2.7.0/kafka_2.12-2.7.0.tgz
               tar -xzf kafka_2.12-2.7.0.tgz
               sudo mv kafka_2.12-2.7.0 /opt/kafka
@@ -220,10 +226,10 @@ resource "aws_instance" "kafka_broker" {
               [Service]
               Type=simple
               ExecStart=/opt/kafka/bin/kafka-server-start.sh /opt/kafka/config/server.properties
+              #ExecStart=/bin/sh -c '/opt/kafka/bin/kafka-server-start.sh /opt/kafka/config/server.properties > /tmp/kafka_connect.log 2>&1'
               ExecStop=/opt/kafka/bin/kafka-server-stop.sh
               User=ec2-user
               Restart=on-failure
-              Environment=JAVA_HOME=/usr/lib/jvm/jdk1.8.0
               [Install]
               WantedBy=multi-user.target
               EOL
@@ -268,6 +274,7 @@ resource "aws_instance" "kafka_zookeeper" {
               tar -xzf kafka_2.12-2.7.0.tgz
               sudo mv kafka_2.12-2.7.0 /opt/kafka
               rm kafka_2.12-2.7.0.tgz
+              chown -R ec2-user: /opt/kafka
               ## Configuração do servidor Kafka ##
               echo "tickTime=2000" >> /opt/kafka/config/zookeeper.properties
               echo "dataDir=/data/zookeeper" >> /opt/kafka/config/zookeeper.properties
@@ -279,10 +286,10 @@ resource "aws_instance" "kafka_zookeeper" {
               [Service]
               Type=simple
               ExecStart=/opt/kafka/bin/zookeeper-server-start.sh /opt/kafka/config/zookeeper.properties
+              #ExecStart=/bin/sh -c '/opt/kafka/bin/zookeeper-server-start.sh /opt/kafka/config/zookeeper.properties > /tmp/kafka_connect.log 2>&1'
               ExecStop=/opt/kafka/bin/zookeeper-server-stop.sh
               User=ec2-user
               Restart=on-failure
-              Environment=JAVA_HOME=/usr/lib/jvm/jdk1.8.0
               [Install]
               WantedBy=multi-user.target
               EOL
